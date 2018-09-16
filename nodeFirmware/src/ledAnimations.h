@@ -345,4 +345,74 @@ static void paintCylon(std::vector<CRGB*>& array, animationCounters& ac, uint16_
     }
 }
 
+//Fire2012 from https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
+// COOLING: How much does the air cool as it rises?
+// Less cooling = taller flames.  More cooling = shorter flames.
+// Default 55, suggested range 20-100
+#define COOLING  55
+
+// SPARKING: What chance (out of 255) is there that a new spark will be lit?
+// Higher chance = more roaring fire.  Lower chance = more flickery fire.
+// Default 120, suggested range 50-200.
+#define SPARKING 120
+static void paintFire2012(std::vector<CRGB*>& array)
+{
+  CRGBPalette16 gPal = HeatColors_p;
+  //gPal = CRGBPalette16( CRGB::Black, CRGB::Blue, CRGB::Aqua,  CRGB::White);
+  //gPal = CRGBPalette16( CRGB::Black, CRGB::Red, CRGB::Yellow, CRGB::White);
+  // Array of temperature readings at each simulation cell
+    uint16_t ledCount = array.size();
+    byte heat[ledCount];
+    // Step 1.  Cool down every cell a little
+      for( int i = 0; i < ledCount; i++) {
+        heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / ledCount) + 2));
+      }
+
+      // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+      for( int k= ledCount - 1; k >= 2; k--) {
+        heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+      }
+
+      // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+      if( random8() < SPARKING ) {
+        int y = random8(7);
+        heat[y] = qadd8( heat[y], random8(160,255) );
+      }
+
+      // Step 4.  Map from heat cells to LED colors
+      for( int j = 0; j < ledCount; j++) {
+        // Scale the heat value from 0-255 down to 0-240
+        // for best results with color palettes.
+        byte colorindex = scale8( heat[j], 240);
+        CRGB color = ColorFromPalette( gPal, colorindex);
+        *array[j] = color;
+      }
+}
+//From https://github.com/FastLED/FastLED/blob/master/examples/Noise/Noise.ino
+/*
+static void paintNoise(std::vector<CRGB*>& array,uint16_t steps,uint16_t w, uint16_t h)
+{
+uint16_t x;
+uint16_t y;
+uint16_t z;
+uint16_t speed = 20;
+uint16_t scale = 311;
+uint16_t maxDimension = ((w>h) ? w : h);
+uint8_t noise[maxDimension][maxDimension];
+
+for(int i = 0; i < maxDimension; i++) {
+  int ioffset = scale * i;
+  for(int j = 0; j < maxDimension; j++) {
+    int joffset = scale * j;
+    noise[i][j] = inoise8(x + ioffset,y + joffset,z);
+  }
+}
+z += speed;
+for(uint l = 0 ; l<array.size() ; l++)
+{
+  *array[l] = CHSV(noise[j][i],255,noise[i][j]);
+}
+i = (y * kMatrixWidth) + x;
+}
+*/
 #endif

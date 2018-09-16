@@ -27,8 +27,7 @@
 #include <WiFiUdp.h>
 #include <EasyNTPClient.h>
 #include <WiFiManager.h>
-#include "FastLED.h"
-
+#include <FastLED.h>
 
 #include <LXWiFiArtNet.h>
 #include <LXWiFiSACN.h>

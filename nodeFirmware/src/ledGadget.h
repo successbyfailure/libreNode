@@ -44,7 +44,7 @@ public:
     cfg[F("effect")] = E_COLOR;
     cfg[F("bright")] = F("1.0");
 
-    cfg["v"]         = "1";
+    cfg["v"]         = "2";
   }
 
   virtual void loadConfig(JsonObject& cfg)
@@ -193,6 +193,7 @@ public:
     else if(t == E_PROGRESS){progress(c["val"].as<int>());}
     else if(t == E_RANDOMCOLOR){randomColor();}
     else if(t == E_RANDOM)     {_currentEffect = E_RANDOM;}
+    else if(t == E_FIRE)       {_currentEffect = E_FIRE;}
     else if(t == E_OFF)        {fade();}
     else if(t == E_COLOR)
     {
@@ -362,14 +363,15 @@ protected:
   {
     uint32_t now = millis();
     uint16_t steps = now - _lastTimeRendered;
+    random16_add_entropy(rand());
 
-
-    if      ( _currentEffect == E_FADE)       animateFade();
+    if      ( _currentEffect == E_FADE)       animateFade       ();
     else if ( _currentEffect == E_FADETOCOLOR)animateFadeToColor();
-    else if ( _currentEffect == E_RANDOM)     animateRandom();
-    else if ( _currentEffect == E_GLOW)       animateGlow       ( steps);
-    else if ( _currentEffect == E_CYLON)      paintCylon        (_leds,_counters,steps);
-    else if ( _currentEffect == E_RAINBOW)    paintRainbow      (_leds,_counters,steps);
+    else if ( _currentEffect == E_FIRE)       animateFire       ();
+    else if ( _currentEffect == E_RANDOM)     animateRandom     ();
+    else if ( _currentEffect == E_GLOW)       animateGlow       (steps);
+    else if ( _currentEffect == E_CYLON)      animateCylon      (steps);
+    else if ( _currentEffect == E_RAINBOW)    animateRainbow    (steps);
     else if ( _currentEffect == E_SPARKS)     paintSparks       (_leds,steps);
     else if ( _currentEffect == E_CLIGHT)     paintChaoticLight (_leds);
     else if ( _currentEffect == E_COLOR)      {fadeToColor(_color);return false;}
@@ -381,6 +383,20 @@ protected:
   }
 
 //efectos
+  virtual void animateFire()
+  {
+    paintFire2012(_leds);
+  }
+
+  virtual void animateRainbow(uint16_t steps)
+  {
+    paintCylon(_leds,_counters,steps);
+  }
+
+  virtual void animateCylon(uint16_t steps)
+  {
+    paintRainbow(_leds,_counters,steps);
+  }
 
   virtual void animateGlow(uint8_t steps = 1)
   {
@@ -491,10 +507,126 @@ ledMatrix(String id,storage* s, ledController* lc) :
   {
 
   }
+  virtual void initConfig(JsonObject& cfg)
+  {
+    ledGadget::initConfig(cfg);
+    cfg[F("xTiles")]    = 3;
+    cfg[F("yTiles")]    = 1;
+    cfg[F("yTileSize")] = 16;
+    cfg[F("xTileSize")] = 16;
+  }
+
+  virtual void loadConfig(JsonObject& cfg)
+  {
+    ledGadget::loadConfig(cfg);
+    _xTiles =     cfg[F("xTiles")];
+    _yTiles =     cfg[F("yTiles")];
+    _tileYsize =  cfg[F("yTileSize")];
+    _tileXsize =  cfg[F("xTileSize")];
+  }
+
+  CRGB* pixel(uint16_t x, uint16_t y)
+  {
+    return getRow(x)[y];
+  }
+
+  std::vector<CRGB*> getRow(uint16_t r)
+  {
+  std::vector<CRGB*> result;
+
+  for(uint16_t tX = 0 ; tX < _xTiles ; tX++)
+    for(uint16_t x = 0 ; x < _tileXsize ; x++)
+    {
+      uint16_t tY = r / _tileYsize;
+      uint16_t tileOffset = (tY*_tileYsize*_tileXsize*_xTiles) + (_tileYsize*_tileXsize*tX);
+      uint16_t index = tileOffset;
+      uint16_t y = 0;
+      if(tY) y = r%_tileYsize;
+      else   y = r;
+
+      if(x%2) index += ((x+1)*_tileYsize)-y-1;
+      else    index += (x*_tileYsize)+y;
+
+      if(index < _ledController->ledCount()) result.push_back(_leds[index]);
+      else                                   result.push_back(_leds.back());
+    }
+  return result;
+  }
+
+  std::vector<CRGB*> getCol(uint16_t c)
+  {
+    std::vector<CRGB*> result;
+    for(uint16_t tY = 0 ; tY < _yTiles ; tY++)
+      for(uint16_t y = 0 ; y < _tileYsize ; y++)
+      {
+        uint16_t tX = c / _tileXsize;
+        uint16_t tileOffset = (tY*_tileYsize*_tileXsize*_xTiles) + (_tileYsize*_tileXsize*tX);
+        uint16_t index = tileOffset;
+        uint16_t x = 0;
+
+        if(tX) x = c%_tileXsize;
+        else   x = c;
+        index += (x*_tileYsize);
+        if(x%2)  index += y;
+        else     index += _tileYsize - y-1;
+        if(index < _ledController->ledCount()) result.push_back(_leds[index]);
+        else                                   result.push_back(_leds.back());
+      }
+    return result;
+  }
+
+  uint16_t width()
+  {
+      return _tileXsize * _xTiles;
+  }
+
+  uint16_t height()
+  {
+      return _tileYsize * _yTiles;
+  }
+  virtual bool readTopic(char* topic, byte* payload, unsigned int length)
+  {
+    if(ledGadget::readTopic(topic,payload,length)) return true;
+    else return false;
+  }
+
 protected:
+  uint16_t _tileXsize;
+  uint16_t _tileYsize;
+  uint8_t  _xTiles;
+  uint8_t  _yTiles;
 
+  virtual void animateRainbow(uint16_t steps)
+  {
+    std::vector<CRGB*> row = getRow(0);
+    paintRainbow(row,_counters,steps);
+    for(uint16_t r = 1 ; r < height() ; r++)
+    {
+      std::vector<CRGB*> nrow = getRow(r);
+      copyLeds(row,nrow);
+    }
+  }
+
+  virtual void animateCylon(uint16_t steps)
+  {
+    std::vector<CRGB*> row = getRow(0);
+    paintCylon(row,_counters,steps);
+    for(uint16_t r = 1 ; r < height() ; r++)
+    {
+      std::vector<CRGB*> nrow = getRow(r);
+      copyLeds(row,nrow);
+    }
+  }
+
+  virtual void animateFire()
+  {
+    for(uint16_t c = 0 ;c < width() ; c++)
+    {
+      //std::vector<CRGB*> col = invertLedOrder(getCol(c));
+      std::vector<CRGB*> col = getCol(c);
+      paintFire2012(col);
+    }
+  }
 };
-
-
 
 #endif
