@@ -390,12 +390,12 @@ protected:
 
   virtual void animateRainbow(uint16_t steps)
   {
-    paintCylon(_leds,_counters,steps);
+    paintRainbow(_leds,_counters,steps);
   }
 
   virtual void animateCylon(uint16_t steps)
   {
-    paintRainbow(_leds,_counters,steps);
+    paintCylon(_leds,_counters,steps);
   }
 
   virtual void animateGlow(uint8_t steps = 1)

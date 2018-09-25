@@ -329,7 +329,7 @@ void imAlive()
   uint16_t nodeTime      = _nodeLoopMS   / (_aliveTimer/1000.0);
   uint16_t otherTime     = _otherLoopMS  / (_aliveTimer/1000.0);
   _sysMS = 0, _sleptMS = 0,_ledLoopMS = 0,_sensorLoopMS = 0,_nodeLoopMS = 0,_otherLoopMS = 0;
-
+  _lastSys = sysTime;_lastSlept = sleptTime;
   float mqttPackets   = _mqttPackets  / (_aliveTimer/1000.0);
   _mqttPackets = 0;
 
@@ -463,6 +463,8 @@ protected:
   uint16_t _otherLoopMS    = 0;
   uint16_t _sysMS          = 0;
   uint16_t _sleptMS        = 0;
+  uint16_t _lastSys        = 0;
+  uint16_t _lastSlept      = 0;
 
   uint16_t _loopDelay      = 0;
 
@@ -588,7 +590,24 @@ protected:
 
   void publishStatusJson()
   {
+    StaticJsonBuffer<JSONCONFIGSIZE> data;
+    JsonObject& json  = data.createObject();
+    json["id"]        = _id;
+    json["chipId"]    = String(ESP.getChipId(), HEX);
+    json["time"]      = String(now());
+    json["uptime"]    = String(millis()/1000.0);
+    json["vcc"]       = ESP.getVcc()/1000.0;
+    json["freeMem"]   = formatBytes(system_get_free_heap_size());
+    json["sysTime"]   = _lastSys;
+    json["sleepTime"] = _lastSlept;
+    JsonObject& w     = json.createNestedObject("wifi");
+    w["signal"]       = String(WiFi.RSSI());
 
+    String topic = _mqttTopic+"status";
+    String p;
+    json.printTo(p);
+    //Serial.println(topic+"\n"+p);
+    publishMQTT(topic,p);
   }
 
   void publishComponents()
