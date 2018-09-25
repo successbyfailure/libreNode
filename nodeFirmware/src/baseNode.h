@@ -394,16 +394,17 @@ virtual void subscribeTopics()
   }
 }
 
-void publishMQTT(String topic,String payload,bool persist = false)
+void publishMQTT(String& topic,String& payload,bool persist = false)
 {
-  if(!_mqttClient.publish(topic.c_str(),payload.c_str(),persist))
-    Serial.print(F("error sending mqtt :"));Serial.println(topic);
+  if(!_mqttClient.publish(topic.c_str(),(uint8_t*)payload.c_str(),payload.length(),persist))
+  {
+    Serial.println(String(F("publishError!! - "))+topic+ String(F(" - size:"))+String(payload.length()));
+  }
 }
 
 void publishMQTT(mqttPub& pub)
 {
-  if(!_mqttClient.publish(pub.topic.c_str(),pub.payload.c_str(),pub.persist))
-    Serial.print(F("error sending mqtt :"));Serial.println(pub.topic);
+  publishMQTT(pub.topic,pub.payload,pub.persist);
 }
 
 virtual void setupNode()  {;}
@@ -547,7 +548,7 @@ protected:
 
   void firstTimeConnect()
   {
-      delay(200);
+      delay(1000);
       _firstTimeConnect = false;
       _ledController.initDMX();
       if(MDNS.begin(_id.c_str()))
@@ -556,9 +557,8 @@ protected:
           MDNS.addService("http", "tcp", 80);
       }
       Serial.print(String(F("Sync NTP Time, current:"))+String(now())+"...");
-      yield();
       setSyncProvider(getNtpTime);
-      setSyncInterval(600000);
+      setSyncInterval(NTP_SYNCTIME);
       Serial.println(String(F("Sync:"))+String(now()));
       if(_mqttEnabled) {connectMQTT();}
   }

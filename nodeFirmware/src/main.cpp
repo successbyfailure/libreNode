@@ -1,6 +1,6 @@
 //#include <GDBStub.h>
-#define MQTT_MAX_PACKET_SIZE    2048
 #include <Arduino.h>
+
 #define FW_VERSION 0.60
 //Defines y hacks
 #define ADC_UNDERVOLT
@@ -12,7 +12,15 @@
 #define LED_CLOCK D7
 //#define FASTLED_ESP8266_RAW_PIN_ORDER
 #define FASTLED_ALLOW_INTERRUPTS 0
-#define NTP_SERVER "es.pool.ntp.org"
+
+//NTP
+#define NTP_SERVER   "es.pool.ntp.org"
+#define NTP_SYNCTIME 600000
+//MQTT
+//#define MQTT_KEEPALIVE 15
+//#define MQTT_MAX_TRANSFER_SIZE  80
+//#define MQTT_SOCKET_TIMEOUT 15
+
 
 //librerias
 #include <FS.h>
