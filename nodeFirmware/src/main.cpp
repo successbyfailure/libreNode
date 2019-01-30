@@ -49,6 +49,7 @@
 #include "nLedBar.h"
 #include "nLedKey.h"
 #include "nLedMatrix.h"
+#include "nLedTree.h"
 
 baseNode*     node;
 spifsStorage* s;
@@ -61,7 +62,12 @@ void setup()
   //delay(6000);//Delay para darle tiempo al atom para abrir el terminal serie
   s = new spifsStorage();
 
-  //s->setKeyValue(CONFIG_MODE,ON_BOOT_ERROR);
+  s->setKeyValue("bodyLeds","effect","christmas");
+  s->setKeyValue("starLeds","effect","glow");
+  s->setKeyValue("starLeds","r","200");
+  s->setKeyValue("starLeds","g","200");
+  s->setKeyValue("starLeds","b","0");
+
   startOTA(s->getNodeConfig(NODE_ID));
   if(enterConfigMode(s)) baseNode::launchConfigPortal(s);
 
@@ -70,6 +76,7 @@ void setup()
   if      (nodeT == NODE_LEDBAR)    node = new ledBarNode(s);
   else if (nodeT == NODE_LEDKEY)    node = new ledKeyNode(s);
   else if (nodeT == NODE_LEDMATRIX) node = new ledMatrixNode(s);
+  else if (nodeT == NODE_LEDTREE)   node = new ledTreeNode(s);
   else                              node = new baseNode(s);
 
   node->setup();

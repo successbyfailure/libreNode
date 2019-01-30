@@ -50,6 +50,8 @@ public:
         Serial.print(String(F("DefaultNeopixel")));
         LEDS.addLeds<NEOPIXEL,LED_PIN>(_ledArray, _ledCount);
       }
+
+
       Serial.println(String(F(" ledcount:"))+String(_ledCount)+" brightness: "+String(_brightness)+" * "+String(_maxBright)+" = "+String(_maxBright*_brightness));
       FastLED.setBrightness(_maxBright*_brightness);
       _pixelsPerUniverse = 512 / _bytesPerPixel;
@@ -271,7 +273,7 @@ public:
         {
           Serial.println(F("Artnet poll enabled"));
           _aUDP.begin(_artNet0->dmxPort());
-          String id = _storage->getLedConfig(NODE_ID);
+          String id = _storage->getNodeConfig(NODE_ID);
           String id0 = id+"-0";
           strcpy(_artNet0->longName(), id0.c_str());
           _artNet0->send_art_poll_reply(&_aUDP);

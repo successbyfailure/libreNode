@@ -415,4 +415,44 @@ for(uint l = 0 ; l<array.size() ; l++)
 i = (y * kMatrixWidth) + x;
 }
 */
+
+
+static void paintChristmas(std::vector<CRGB*>& array, animationCounters& ac, uint16_t steps)
+{
+  ac.c0 += steps/20;
+  ac.c1 += steps/40;
+  if(ac.c0 >=20)ac.c0 = 0;
+  if(ac.c1 >=30)ac.c1 = 0;
+
+  for(uint i = 0 ; i < array.size() ; i++)
+  {
+    *array[i] = CRGB(0,1000,0);
+  }
+/*
+  for(uint i = 0 ; i < array.size() ; i++)
+  {
+    uint pos = i+ac.c0;
+    if((i%20 == 0) && (pos+4 < array.size()))
+    {
+      CRGB color(0,255,0);
+      *array[pos++] = color;
+      *array[pos++] = color;
+      *array[pos++] = color;
+      *array[pos]   = color;
+    }
+  }
+*/
+  for(uint i = 0 ; i < array.size() ; i++)
+  {
+    uint pos = i+ac.c1;
+    if((i%30 == 0) && (pos+2<array.size()))
+    {
+      *array[pos++] = CRGB(30,30,50);
+      *array[pos++] = CRGB(30,30,50);
+      *array[pos]   = CRGB(100,100,100);
+    }
+  }
+
+}
+
 #endif

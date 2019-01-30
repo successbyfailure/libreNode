@@ -53,13 +53,14 @@
 
 #define NODE_CONFIG         F("/nodeConfig.json")
 #define LEDS_CONFIG         F("/ledController.json")
+#define BOOT_CONFIG         "/boot.json"
 
 //NODE NAMES
-#define NODE_NEW        "newNode"
+#define NODE_NEW        "new"
 #define NODE_LEDBAR     "ledBar"
 #define NODE_LEDMATRIX  "ledMatrix"
 #define NODE_LEDKEY     "ledKey"
-
+#define NODE_LEDTREE    "ledTree"
 //LED TYPES
 #define LED_WS2812      F("ws2812")
 #define LED_WS2801      F("ws2801")
@@ -80,6 +81,8 @@
 #define E_FLASH         F("flash")
 #define E_STROBE        F("strobe")
 #define E_FIRE          F("fire")
+#define E_GAME          F("game")
+#define E_CHRISTMAS     F("christmas")
 //Strings
 #define ENABLED         "en"
 #define DISABLED        "dis"

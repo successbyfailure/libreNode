@@ -39,13 +39,7 @@ baseNode(storage* s) :_storage(s),_ledController(s),_mqttClient(_client)
 void setup()
 {
   uint32_t now = millis();
-  _mqttClient.setCallback(mqttCallback);
   loadConfig();
-  setupComponents();
-
-  pinMode       (_statusLedPin, OUTPUT);
-  digitalWrite  (_statusLedPin, HIGH);
-
   WiFi.hostname         (_id);
 
   if(_storage->getNodeConfig(WIFI_MODE) == WIFI_MASTER)
@@ -57,14 +51,18 @@ void setup()
     WiFi.setAutoConnect   (true);
     WiFi.setAutoReconnect (true);
     //WiFi.persistent       (true);
-    //WiFi.mode             (WIFI_STA);
+    WiFi.mode             (WIFI_STA);
     //WiFi.setOutputPower   (0);
     //WiFi.setSleepMode     (WIFI_NONE_SLEEP);
-    //WiFi.begin();
-
+    WiFi.begin();
   }
-
   yield();
+
+  _mqttClient.setCallback(mqttCallback);
+  setupComponents();
+
+  pinMode       (_statusLedPin, OUTPUT);
+  digitalWrite  (_statusLedPin, HIGH);
 
   _lastSensorLoopTime = now;
   _lastNodeLoopTime   = now;
@@ -77,7 +75,7 @@ void setup()
   setupNode();
   Serial.println(String(F("\n\n\n ...OK! Setup took "))+String(millis())+String(F("ms")));
   delay(100);
-  _storage->setNodeConfig(BERROR,String(0));
+  _storage->setKeyValue(BERROR,String(0),BOOT_CONFIG);
 }
 
 static void launchConfigPortal(storage* s)
@@ -307,6 +305,7 @@ virtual void slowLoop()
   ArduinoOTA.handle();
   publishComponents();
   if(_mqttClient.connected()) {_mqttClient.loop();}
+  parseSerial();
 }
 
 void imAlive()
@@ -369,23 +368,22 @@ void readTopic(char* topic, byte* payload, unsigned int length)
   mqttRX();
   for(uint c = 0 ; c < _components.size() ; c++)
     if(_components[c]->readTopic(topic,payload,length))
-    {
-        //return;
-    }
-
-    readTopicNode(topic,payload,length);
+        return;
+  readTopicNode(topic,payload,length);
 }
 
 void subscribeMQTT(String topic)
 {
   Serial.println(String(F("Subscribe :"))+topic);
   _mqttClient.subscribe(topic.c_str());
-  _mqttClient.loop();
+//  _mqttClient.loop();
 }
 
 virtual void subscribeTopics()
 {
   subscribeMQTT(String(_mqttTopic+String(F("cmnd"))).c_str());
+  for(auto t : _subscriptions)
+    subscribeMQTT(t);
   for(uint c = 0 ; c < _components.size() ; c++)
   {
     std::vector<String> topics = _components[c]->getTopics();
@@ -394,7 +392,7 @@ virtual void subscribeTopics()
   }
 }
 
-void publishMQTT(String& topic,String& payload,bool persist = false)
+void publishMQTT(String topic,String& payload,bool persist = false)
 {
   if(!_mqttClient.publish(topic.c_str(),(uint8_t*)payload.c_str(),payload.length(),persist))
   {
@@ -421,6 +419,7 @@ protected:
   ledController               _ledController;
   std::vector<nodeComponent*> _components;
   std::vector<nodeComponent*> _ledGadgets;
+  std::vector<String>         _subscriptions;
 
   WiFiClient    _client;
 	PubSubClient  _mqttClient;
@@ -471,6 +470,18 @@ protected:
   int16_t _statusLedDecay  = 0;
 
   uint16_t _mqttPackets    = 0;
+
+  void parseSerial()
+  {
+    if(Serial.available())
+    {
+      char cx = Serial.read();
+      if( cx == 'C')
+      {
+        launchConfigPortal(_storage);
+      }
+    }
+  }
 
   void checkConnectivity()
   {
@@ -536,12 +547,12 @@ protected:
     Serial.println(String(F("MQTT Disconnected!")));
   }
 
-  void wifiDisconnected()
+  virtual void wifiDisconnected()
   {
     Serial.println(String(F("Wifi Disconnected!")));
   }
 
-  void wifiConnected()
+  virtual void wifiConnected()
   {
     Serial.println(String(F("Wifi Connected!")));
     if(_firstTimeConnect)

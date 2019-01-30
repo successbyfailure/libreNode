@@ -27,10 +27,10 @@ String stockNodeConfig()
   StaticJsonBuffer<JSONCONFIGSIZE> data;
   JsonObject& root = data.createObject();
 
-  root[NODE_ID]             = String(F("Node-"))+String(ESP.getChipId(), HEX);
-  root[NODE_TYPE]           = F("new");//new;
-  //root[NODE_ID]             = "LedPanel";
-  //root[NODE_TYPE]           = F("ledMatrix");//new;
+  //root[NODE_ID]             = String(F("Node-"))+String(ESP.getChipId(), HEX);
+  //root[NODE_TYPE]           = F("new");//new;
+  root[NODE_ID]             = "ledTree";
+  root[NODE_TYPE]           = F("ledTree");//new;
   root[FIRST_RUN]           = F("Y");
 
   root[WIFI_MODE]           = WIFI_CLIENT;
@@ -41,7 +41,7 @@ String stockNodeConfig()
   root[STATIC_IP]           = F("10.0.1.4");
 
   root[MQTT_ENABLED]        = ENABLED;
-  root[MQTT_SERVER]         = F("10.0.1.254");
+  root[MQTT_SERVER]         = F("192.168.10.10");
   root[MQTT_PORT]           = F("1883");
 
   root[STATUS_PIN]          = LED_BUILTIN;
@@ -81,9 +81,9 @@ String stockLedConfig()
   root[SACN_CHANNEL]        = F("1");
 
   root[LED_HW]              = F("ws2812");
-  root[LED_COUNT]           = F("50");
+  root[LED_COUNT]           = F("80");
   root[LED_BRIGHT]          = F("1");
-  root[LED_MAXBRIGHT]       = F("100");
+  root[LED_MAXBRIGHT]       = F("230");
   root[UNDERVOLT_PROTECT]   = ENABLED;
   root[POWER_CALIBRATION]   = ENABLED;
 

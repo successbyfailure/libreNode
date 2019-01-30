@@ -58,15 +58,15 @@ bool enterConfigMode(storage* s)
   String cMode = s->getNodeConfig(CONFIG_MODE);
   if(cMode == ON_BOOT_ERROR)
   {
-    int bootError = String(s->getNodeConfig(BERROR)).toInt();
+    int bootError = String(s->getKeyValue(BERROR,BOOT_CONFIG)).toInt();
     bootError++;
     if(bootError >= String(s->getNodeConfig(MAX_BERROR)).toInt())
     {
-      s->setNodeConfig(BERROR,String(0));
+      s->setKeyValue(BERROR,String(0),BOOT_CONFIG);
       return true;
     }
     else
-      s->setNodeConfig(BERROR,String(bootError));
+      s->setKeyValue(BERROR,String(bootError),BOOT_CONFIG);
   }
   else if(cMode == ON_PIN)
   {

@@ -16,13 +16,11 @@ public:
     if(count == 0)
         count = lc->ledCount();
 
-    if(!reversed)
-        for(uint16_t i = startLed ; i < startLed+count ; i++)
-            if((i < lc->ledCount()) && (i >= 0)) _leds.push_back(lc->pixel(i));
-    else
-        for(uint16_t i = startLed+count ; i >= startLed ; i--)
-            if((i<lc->ledCount()) && (i>= 0)) _leds.push_back(lc->pixel(i));
+    for(uint16_t i = startLed ; i < startLed+count ; i++)
+        if((i < lc->ledCount()) && (i >= 0)) _leds.push_back(lc->pixel(i));
 
+    if(reversed)
+      _leds = invertLedOrder(_leds);
     addTopic(F("setColor"));
     addTopic(F("setRandomColor"));
     addTopic(F("setEffect"));
@@ -43,7 +41,6 @@ public:
     cfg["b"]      = "70";
     cfg[F("effect")] = E_COLOR;
     cfg[F("bright")] = F("1.0");
-
     cfg["v"]         = "2";
   }
 
@@ -114,7 +111,6 @@ public:
     }
   }
 
-
   void show()
   {
     if(_ledController->dmxInUse())
@@ -184,13 +180,14 @@ public:
     }
     String t = c[F("effect")];
 
-    if     (t == E_CLIGHT)  {chaoticLight();}
-    else if(t == E_FADE)    {fade();}
-    else if(t == E_GLOW)    {glow();}
-    else if(t == E_CYLON)   {cylon();}
-    else if(t == E_RAINBOW) {rainbow();}
-    else if(t == E_SPARKS)  {sparks();}
-    else if(t == E_PROGRESS){progress(c["val"].as<int>());}
+    if     (t == E_CLIGHT)   {chaoticLight();}
+    else if(t == E_FADE)     {fade();}
+    else if(t == E_GLOW)     {glow();}
+    else if(t == E_CYLON)    {cylon();}
+    else if(t == E_RAINBOW)  {rainbow();}
+    else if(t == E_SPARKS)   {sparks();}
+    else if(t == E_CHRISTMAS){christmas();}
+    else if(t == E_PROGRESS) {progress(c["val"].as<int>());}
     else if(t == E_RANDOMCOLOR){randomColor();}
     else if(t == E_RANDOM)     {_currentEffect = E_RANDOM;}
     else if(t == E_FIRE)       {_currentEffect = E_FIRE;}
@@ -239,7 +236,7 @@ public:
   virtual void cylon()        {resetCounters(); _currentEffect = E_CYLON  ;paintCylon(_leds,_counters,0);}
   virtual void rainbow()      {resetCounters(); _currentEffect = E_RAINBOW;paintRainbow(_leds,_counters,0);}
   virtual void chaoticLight() {resetCounters(); _currentEffect = E_CLIGHT ;paintChaoticLight(_leds);}
-
+  virtual void christmas()    {resetCounters(); _currentEffect = E_CHRISTMAS;paintChristmas(_leds,_counters,0);}
 
   virtual void glow(CRGB c = CRGB(0,0,0))
   {
@@ -376,6 +373,7 @@ protected:
     else if ( _currentEffect == E_CLIGHT)     paintChaoticLight (_leds);
     else if ( _currentEffect == E_COLOR)      {fadeToColor(_color);return false;}
     else if ( _currentEffect == E_STROBE)     {animateStrobe()    ;return false;}
+    else if ( _currentEffect == E_CHRISTMAS)  paintChristmas    (_leds,_counters,steps);
     else
       return false;
 
@@ -396,6 +394,11 @@ protected:
   virtual void animateCylon(uint16_t steps)
   {
     paintCylon(_leds,_counters,steps);
+  }
+
+  virtual void animateChristmas(uint16_t steps)
+  {
+    paintChristmas(_leds,_counters,steps);
   }
 
   virtual void animateGlow(uint8_t steps = 1)
@@ -490,8 +493,8 @@ protected:
 class ledBar : public ledGadget
 {
 public:
-ledBar(String id,storage* s, ledController* lc) :
-  ledGadget(id,s,lc)
+ledBar(String id,storage* s, ledController* lc, int startLed = 0, int count = 0, bool reversed = false) :
+  ledGadget(id,s,lc,startLed,count,reversed)
   {
 
   }
