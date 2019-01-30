@@ -56,11 +56,13 @@
 #define BOOT_CONFIG         "/boot.json"
 
 //NODE NAMES
-#define NODE_NEW        "new"
-#define NODE_LEDBAR     "ledBar"
-#define NODE_LEDMATRIX  "ledMatrix"
-#define NODE_LEDKEY     "ledKey"
-#define NODE_LEDTREE    "ledTree"
+#define NODE_NEW         "new"
+#define NODE_LEDBAR      "ledBar"
+#define NODE_LEDMATRIX   "ledMatrix"
+#define NODE_LEDKEY      "ledKey"
+#define NODE_LEDTREE     "ledTree"
+#define NODE_LEDREJIBAND "ledRejiband"
+#define NODE_COFFEEMAKER "coffeeMaker"
 //LED TYPES
 #define LED_WS2812      F("ws2812")
 #define LED_WS2801      F("ws2801")

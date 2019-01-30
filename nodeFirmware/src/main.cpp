@@ -50,6 +50,8 @@
 #include "nLedKey.h"
 #include "nLedMatrix.h"
 #include "nLedTree.h"
+#include "nLedRejiband.h"
+#include "nCoffeMaker.h"
 
 baseNode*     node;
 spifsStorage* s;
@@ -73,11 +75,13 @@ void setup()
 
   String nodeT = s->getNodeConfig(NODE_TYPE);
 
-  if      (nodeT == NODE_LEDBAR)    node = new ledBarNode(s);
-  else if (nodeT == NODE_LEDKEY)    node = new ledKeyNode(s);
-  else if (nodeT == NODE_LEDMATRIX) node = new ledMatrixNode(s);
-  else if (nodeT == NODE_LEDTREE)   node = new ledTreeNode(s);
-  else                              node = new baseNode(s);
+  if      (nodeT == NODE_LEDBAR)      node = new ledBarNode(s);
+  else if (nodeT == NODE_LEDKEY)      node = new ledKeyNode(s);
+  else if (nodeT == NODE_LEDMATRIX)   node = new ledMatrixNode(s);
+  else if (nodeT == NODE_LEDTREE)     node = new ledTreeNode(s);
+  else if (nodeT == NODE_LEDREJIBAND) node = new ledRejibandNode(s);
+  else if (nodeT == NODE_COFFEEMAKER) node = new coffeeMakerNode(s);
+  else                                node = new baseNode(s);
 
   node->setup();
 }
